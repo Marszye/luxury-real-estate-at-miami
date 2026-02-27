@@ -1,22 +1,95 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
+import type { Components } from "react-markdown"
+import ReactMarkdown from "react-markdown"
 import { Send, Sparkles, X, Minus, Bot } from "lucide-react"
 
 const initialMessages: { role: "user" | "assistant"; content: string }[] = [
   {
     role: "assistant" as const,
     content:
-      "Welcome to Maison. I'm your personal property concierge. How may I assist you in finding your perfect Miami residence?",
+      "Good day. I'm your Senior Property Concierge at Maison. We've been curating exceptional Miami residences for discerning clients since 2011. Whether you're seeking a waterfront estate, a penthouse with panoramic vistas, or an investment-grade property, I'm here to guide you through our exclusive portfolio.\n\nHow may I assist you today?",
   },
 ]
 
 const quickActions = [
-  "Waterfront homes under $20M",
-  "Penthouse with ocean views",
-  "New developments in Brickell",
-  "Schedule a private viewing",
+  "Waterfront estates $10M–$25M",
+  "Penthouses with bay-to-ocean views",
+  "New developments in Brickell & Edgewater",
+  "Schedule an exclusive private viewing",
 ]
+
+const markdownComponents: Components = {
+  p: ({ children }) => (
+    <p className="mb-3 last:mb-0 text-sm leading-relaxed text-foreground/90">{children}</p>
+  ),
+  strong: ({ children }) => (
+    <strong className="font-semibold text-foreground">{children}</strong>
+  ),
+  em: ({ children }) => (
+    <em className="italic text-foreground/85">{children}</em>
+  ),
+  a: ({ href, children }) => (
+    <a
+      href={href ?? "#"}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-gold underline underline-offset-2 hover:text-gold/80 transition-colors"
+    >
+      {children}
+    </a>
+  ),
+  ul: ({ children }) => (
+    <ul className="my-4 space-y-2.5 list-none pl-0" style={{ fontFamily: "var(--font-inter), sans-serif" }}>
+      {children}
+    </ul>
+  ),
+  ol: ({ children }) => (
+    <ol className="my-4 space-y-2.5 list-none pl-0" style={{ fontFamily: "var(--font-inter), sans-serif" }}>
+      {children}
+    </ol>
+  ),
+  li: ({ children }) => (
+    <li className="border border-gold/20 bg-background/95 rounded-md px-4 py-3 text-sm leading-relaxed shadow-sm hover:border-gold/30 transition-colors [&:not(:last-child)]:mb-2.5">
+      {children}
+    </li>
+  ),
+  h1: ({ children }) => (
+    <h1 className="text-base font-semibold mt-4 mb-2 first:mt-0 text-foreground tracking-tight">{children}</h1>
+  ),
+  h2: ({ children }) => (
+    <h2 className="text-sm font-semibold mt-4 mb-2 first:mt-0 text-foreground tracking-tight">{children}</h2>
+  ),
+  h3: ({ children }) => (
+    <h3 className="text-sm font-medium mt-3 mb-1.5 text-foreground/95">{children}</h3>
+  ),
+  hr: () => (
+    <hr className="my-5 border-0 border-t border-gold/20" />
+  ),
+  blockquote: ({ children }) => (
+    <blockquote className="border-l-2 border-gold/40 pl-4 py-2 my-3 italic text-foreground/85 bg-background/50 rounded-r-sm">
+      {children}
+    </blockquote>
+  ),
+  code: ({ className, children }) => {
+    const isBlock = className != null
+    return isBlock ? (
+      <code className="block rounded bg-muted px-2 py-1.5 text-xs overflow-x-auto">
+        {children}
+      </code>
+    ) : (
+      <code className="rounded bg-muted/80 px-1.5 py-0.5 text-xs font-mono">
+        {children}
+      </code>
+    )
+  },
+  pre: ({ children }) => (
+    <pre className="rounded-md bg-muted p-3 my-2 overflow-x-auto text-xs">
+      {children}
+    </pre>
+  ),
+}
 
 export function AIConcierge() {
   const [isOpen, setIsOpen] = useState(false)
@@ -30,7 +103,7 @@ export function AIConcierge() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
 
-  const handleSend = (text?: string) => {
+  const handleSend = async (text?: string) => {
     const message = text || input
     if (!message.trim()) return
 
@@ -38,23 +111,44 @@ export function AIConcierge() {
     setInput("")
     setIsTyping(true)
 
-    // Simulate AI response
-    setTimeout(() => {
-      const responses = [
-        "I'd be happy to help you explore that. We currently have several exceptional properties matching your criteria. Would you like me to arrange a private viewing with one of our senior advisors?",
-        "Excellent choice. Our Brickell portfolio includes three pre-launch developments with panoramic bay views starting from $4.8M. Shall I send you the exclusive brochure?",
-        "That's a wonderful selection. I can connect you with our dedicated concierge team for a personalized tour at your convenience. What dates work best for you?",
-        "We have several stunning options available. Our Star Island estate and the new Fisher Island penthouse are generating significant interest. I can schedule a VIP preview for you this week.",
-      ]
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: [
+            ...messages,
+            { role: "user" as const, content: message },
+          ],
+        }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to get response")
+      }
+
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant" as const,
-          content: responses[Math.floor(Math.random() * responses.length)],
+          content: data.message || "I apologize, but I'm unable to generate a response at this moment. Please try again, or I'd be delighted to connect you directly with one of our senior advisors.",
         },
       ])
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : "I apologize for the inconvenience."
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant" as const,
+          content: `I regret that I've encountered a technical difficulty: ${errorMessage} Please feel free to try again, or allow me to connect you with one of our senior property advisors who can assist you immediately.`,
+        },
+      ])
+    } finally {
       setIsTyping(false)
-    }, 1500)
+    }
   }
 
   return (
@@ -65,7 +159,7 @@ export function AIConcierge() {
           setIsOpen(true)
           setIsMinimized(false)
         }}
-        className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 transition-all duration-500 ${
+        className={`fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 flex items-center gap-3 transition-all duration-500 ${
           isOpen
             ? "pointer-events-none scale-90 opacity-0"
             : "pointer-events-auto scale-100 opacity-100"
@@ -91,14 +185,14 @@ export function AIConcierge() {
 
       {/* Chat Widget */}
       <div
-        className={`fixed bottom-6 right-6 z-50 flex flex-col overflow-hidden border border-gold/15 bg-cream shadow-2xl shadow-charcoal/15 transition-all duration-500 ease-out ${
+        className={`fixed inset-x-4 bottom-4 sm:bottom-6 sm:right-6 sm:left-auto z-50 flex flex-col overflow-hidden border border-gold/15 bg-cream shadow-2xl shadow-charcoal/15 transition-all duration-500 ease-out ${
           isOpen
             ? "pointer-events-auto opacity-100 translate-y-0"
             : "pointer-events-none opacity-0 translate-y-6"
         } ${
           isMinimized
-            ? "h-[68px] w-[340px]"
-            : "h-[540px] w-[380px] max-h-[80vh]"
+            ? "h-[68px] w-full sm:w-[340px]"
+            : "h-[540px] w-full sm:w-[380px] max-h-[80vh]"
         }`}
       >
         {/* Header */}
@@ -151,14 +245,20 @@ export function AIConcierge() {
                   }`}
                 >
                   <div
-                    className={`max-w-[85%] px-4 py-3 text-sm leading-relaxed ${
+                    className={`max-w-[85%] px-4 py-3.5 text-sm leading-relaxed max-w-none rounded-sm ${
                       msg.role === "user"
-                        ? "bg-charcoal text-cream"
-                        : "border border-gold/10 bg-secondary text-foreground"
+                        ? "bg-charcoal text-cream shadow-sm"
+                        : "border border-gold/10 bg-secondary text-foreground shadow-sm"
                     }`}
                     style={{ fontFamily: "var(--font-inter), sans-serif" }}
                   >
-                    {msg.content}
+                    {msg.role === "user" ? (
+                      <span className="text-cream/95">{msg.content}</span>
+                    ) : (
+                      <ReactMarkdown components={markdownComponents}>
+                        {msg.content}
+                      </ReactMarkdown>
+                    )}
                   </div>
                 </div>
               ))}
@@ -204,7 +304,7 @@ export function AIConcierge() {
                   type="text"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  placeholder="Ask about any property..."
+                  placeholder="Share your property preferences or questions..."
                   className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground/60 outline-none"
                   style={{ fontFamily: "var(--font-inter), sans-serif" }}
                 />
