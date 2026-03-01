@@ -1,5 +1,9 @@
+"use client"
+
 import Image from "next/image"
 import { Linkedin, Mail, ArrowUpRight } from "lucide-react"
+import { ScrollReveal, StaggerContainer, staggerChild } from "@/components/scroll-reveal"
+import { motion } from "framer-motion"
 
 const team = [
   {
@@ -40,50 +44,50 @@ const team = [
   },
 ]
 
-export function TeamSection() {
+export function TeamSection({ companyName }: { companyName?: string }) {
+  const brandName = companyName || "Maison"
+
   return (
     <section className="border-t border-border bg-secondary py-24 lg:py-32">
       <div className="mx-auto max-w-7xl px-6 lg:px-10">
         {/* Header */}
-        <div className="mb-20 flex flex-col items-start lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <div className="mb-6 inline-flex items-center gap-3">
-              <span className="h-px w-8 bg-gold" />
-              <span
-                className="text-xs tracking-[0.4em] text-gold uppercase"
-                style={{ fontFamily: "var(--font-inter), sans-serif" }}
-              >
-                Our Leadership
-              </span>
+        <ScrollReveal>
+          <div className="mb-20 flex flex-col items-start lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <div className="mb-6 inline-flex items-center gap-3">
+                <span className="h-px w-8 bg-gold" />
+                <span className="font-sans text-xs tracking-[0.4em] text-gold uppercase">
+                  Our Leadership
+                </span>
+              </div>
+              <h2 className="font-serif text-4xl font-light tracking-tight text-foreground sm:text-5xl lg:text-6xl text-balance">
+                Meet the{" "}
+                <span className="italic text-gold">Advisors</span>
+              </h2>
+              <p className="mt-6 max-w-xl font-sans text-base leading-relaxed text-muted-foreground">
+                Our senior team brings collective expertise from global finance,
+                architecture, and ultra-luxury real estate. Each advisor is
+                personally assigned to ensure an unmatched level of service.
+              </p>
             </div>
-            <h2 className="text-4xl font-light tracking-tight text-foreground sm:text-5xl lg:text-6xl text-balance">
-              Meet the{" "}
-              <span className="italic text-gold">Advisors</span>
-            </h2>
-            <p
-              className="mt-6 max-w-xl text-base leading-relaxed text-muted-foreground"
-              style={{ fontFamily: "var(--font-inter), sans-serif" }}
+            <a
+              href="/#about"
+              className="mt-8 inline-flex items-center gap-2 border border-charcoal/20 px-8 py-3 font-sans text-xs tracking-[0.2em] text-charcoal uppercase transition-all duration-500 hover:border-gold hover:bg-gold hover:text-cream lg:mt-0"
             >
-              Our senior team brings collective expertise from global finance,
-              architecture, and ultra-luxury real estate. Each advisor is
-              personally assigned to ensure an unmatched level of service.
-            </p>
+              Full Team
+              <ArrowUpRight className="h-3.5 w-3.5" />
+            </a>
           </div>
-          <a
-            href="#"
-            className="mt-8 inline-flex items-center gap-2 border border-charcoal/20 px-8 py-3 text-xs tracking-[0.2em] text-charcoal uppercase transition-all duration-500 hover:border-gold hover:bg-gold hover:text-cream lg:mt-0"
-            style={{ fontFamily: "var(--font-inter), sans-serif" }}
-          >
-            Full Team
-            <ArrowUpRight className="h-3.5 w-3.5" />
-          </a>
-        </div>
+        </ScrollReveal>
 
         {/* Team Grid */}
-        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+        <StaggerContainer className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           {team.map((member) => (
-            <article
+            <motion.article
               key={member.name}
+              variants={staggerChild}
+              whileHover={{ scale: 1.02 }}
+              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
               className="group bg-background transition-all duration-500 hover:shadow-lg hover:shadow-gold/[0.03]"
             >
               {/* Photo */}
@@ -100,14 +104,16 @@ export function TeamSection() {
                 {/* Social overlay */}
                 <div className="absolute bottom-4 left-4 right-4 flex items-center gap-2 opacity-0 translate-y-4 transition-all duration-500 group-hover:opacity-100 group-hover:translate-y-0">
                   <a
-                    href="#"
+                    href="https://linkedin.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="flex h-9 w-9 items-center justify-center bg-cream/90 text-charcoal backdrop-blur-sm transition-colors hover:bg-gold hover:text-cream"
                     aria-label={`${member.name} on LinkedIn`}
                   >
                     <Linkedin className="h-3.5 w-3.5" />
                   </a>
                   <a
-                    href="#"
+                    href="mailto:concierge@maison.com"
                     className="flex h-9 w-9 items-center justify-center bg-cream/90 text-charcoal backdrop-blur-sm transition-colors hover:bg-gold hover:text-cream"
                     aria-label={`Email ${member.name}`}
                   >
@@ -118,34 +124,22 @@ export function TeamSection() {
 
               {/* Info */}
               <div className="p-6">
-                <h3 className="text-lg font-medium tracking-tight text-foreground">
+                <h3 className="font-serif text-lg font-medium tracking-tight text-foreground">
                   {member.name}
                 </h3>
-                <p
-                  className="mt-1 text-xs tracking-wide text-gold"
-                  style={{ fontFamily: "var(--font-inter), sans-serif" }}
-                >
+                <p className="mt-1 font-sans text-xs tracking-wide text-gold">
                   {member.title}
                 </p>
-                <p
-                  className="mt-4 text-xs leading-relaxed text-muted-foreground line-clamp-3"
-                  style={{ fontFamily: "var(--font-inter), sans-serif" }}
-                >
-                  {member.bio}
+                <p className="mt-4 font-sans text-xs leading-relaxed text-muted-foreground line-clamp-3">
+                  {member.bio.replaceAll("Maison", brandName)}
                 </p>
 
                 {/* Languages */}
                 <div className="mt-4 border-t border-border pt-4">
-                  <span
-                    className="text-[9px] tracking-[0.2em] text-muted-foreground/50 uppercase"
-                    style={{ fontFamily: "var(--font-inter), sans-serif" }}
-                  >
+                  <span className="font-sans text-[9px] tracking-[0.2em] text-muted-foreground/50 uppercase">
                     Languages
                   </span>
-                  <p
-                    className="mt-1 text-[11px] text-muted-foreground"
-                    style={{ fontFamily: "var(--font-inter), sans-serif" }}
-                  >
+                  <p className="mt-1 font-sans text-[11px] text-muted-foreground">
                     {member.languages.join(" / ")}
                   </p>
                 </div>
@@ -155,17 +149,16 @@ export function TeamSection() {
                   {member.certifications.map((cert) => (
                     <span
                       key={cert}
-                      className="border border-gold/15 px-2 py-0.5 text-[9px] tracking-[0.1em] text-gold/70"
-                      style={{ fontFamily: "var(--font-inter), sans-serif" }}
+                      className="font-sans border border-gold/15 px-2 py-0.5 text-[9px] tracking-[0.1em] text-gold/70"
                     >
                       {cert}
                     </span>
                   ))}
                 </div>
               </div>
-            </article>
+            </motion.article>
           ))}
-        </div>
+        </StaggerContainer>
       </div>
     </section>
   )

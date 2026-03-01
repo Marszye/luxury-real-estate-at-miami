@@ -10,8 +10,10 @@ import { TestimonialsAndPress } from "@/components/testimonials-press"
 import { ScheduleTour } from "@/components/schedule-tour"
 import { AIConcierge } from "@/components/ai-concierge"
 import { Footer } from "@/components/footer"
+import { getSiteSettings } from "@/sanity/lib/siteSettings"
 
-export default function Home() {
+export default async function Home() {
+  const settings = await getSiteSettings()
   return (
     <main>
       <Navigation />
@@ -20,8 +22,8 @@ export default function Home() {
       <FeaturedListings />
       <NeighborhoodGuide />
       <MarketInsights />
-      <WhyMaison />
-      <TeamSection />
+      <WhyMaison companyName={settings.companyName} />
+      <TeamSection companyName={settings.companyName} />
       <TestimonialsAndPress />
       <ScheduleTour />
       <Footer />

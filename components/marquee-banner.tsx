@@ -20,11 +20,10 @@ export function MarqueeBanner() {
         {[...neighborhoods, ...neighborhoods].map((name, i) => (
           <span
             key={`${name}-${i}`}
-            className="mx-8 flex items-center gap-8 text-sm tracking-[0.2em] text-muted-foreground/60 uppercase"
-            style={{ fontFamily: "var(--font-inter), sans-serif" }}
+            className="mx-8 flex items-center gap-8 text-sm tracking-[0.2em] text-muted-foreground/60 uppercase font-sans"
           >
             {name}
-            <span className="h-1 w-1 rounded-full bg-gold/40" />
+            <span className="h-1 w-1 rounded-full bg-gold/40 font-sans" />
           </span>
         ))}
       </div>

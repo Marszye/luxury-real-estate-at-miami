@@ -1,4 +1,6 @@
+import Link from "next/link"
 import { TrendingUp, BarChart3, DollarSign, Building2, ArrowUpRight, Calendar } from "lucide-react"
+import { ScrollReveal } from "@/components/scroll-reveal"
 
 const reports = [
   {
@@ -59,39 +61,34 @@ export function MarketInsights() {
     <section id="insights" className="border-t border-border bg-background py-24 lg:py-32">
       <div className="mx-auto max-w-7xl px-6 lg:px-10">
         {/* Section Header */}
-        <div className="mb-20 flex flex-col items-start lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <div className="mb-6 inline-flex items-center gap-3">
-              <span className="h-px w-8 bg-gold" />
-              <span
-                className="text-xs tracking-[0.4em] text-gold uppercase"
-                style={{ fontFamily: "var(--font-inter), sans-serif" }}
-              >
-                Market Intelligence
-              </span>
+        <ScrollReveal>
+          <div className="mb-20 flex flex-col items-start lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <div className="mb-6 inline-flex items-center gap-3">
+                <span className="h-px w-8 bg-gold" />
+                <span className="text-xs tracking-[0.4em] text-gold uppercase font-sans">
+                  Market Intelligence
+                </span>
+              </div>
+              <h2 className="text-4xl font-light tracking-tight text-foreground sm:text-5xl lg:text-6xl text-balance font-serif">
+                Insights &{" "}
+                <span className="italic text-gold">Research</span>
+              </h2>
+              <p className="mt-6 max-w-xl text-base leading-relaxed text-muted-foreground font-sans">
+                Data-driven market intelligence from our dedicated research team.
+                Stay informed with quarterly reports, investment analysis, and
+                neighborhood deep-dives that shape confident decisions.
+              </p>
             </div>
-            <h2 className="text-4xl font-light tracking-tight text-foreground sm:text-5xl lg:text-6xl text-balance">
-              Insights &{" "}
-              <span className="italic text-gold">Research</span>
-            </h2>
-            <p
-              className="mt-6 max-w-xl text-base leading-relaxed text-muted-foreground"
-              style={{ fontFamily: "var(--font-inter), sans-serif" }}
+            <Link
+              href="/market-intelligence"
+              className="mt-8 inline-flex items-center gap-2 border border-charcoal/20 px-8 py-3 text-xs tracking-[0.2em] text-charcoal uppercase transition-all duration-500 hover:border-gold hover:bg-gold hover:text-cream lg:mt-0 font-sans"
             >
-              Data-driven market intelligence from our dedicated research team.
-              Stay informed with quarterly reports, investment analysis, and
-              neighborhood deep-dives that shape confident decisions.
-            </p>
+              View All Reports
+              <ArrowUpRight className="h-3.5 w-3.5" />
+            </Link>
           </div>
-          <a
-            href="#"
-            className="mt-8 inline-flex items-center gap-2 border border-charcoal/20 px-8 py-3 text-xs tracking-[0.2em] text-charcoal uppercase transition-all duration-500 hover:border-gold hover:bg-gold hover:text-cream lg:mt-0"
-            style={{ fontFamily: "var(--font-inter), sans-serif" }}
-          >
-            View All Reports
-            <ArrowUpRight className="h-3.5 w-3.5" />
-          </a>
-        </div>
+        </ScrollReveal>
 
         {/* Market Data Cards */}
         <div className="mb-16 grid grid-cols-2 gap-px bg-border lg:grid-cols-4">
@@ -106,16 +103,10 @@ export function MarketInsights() {
                 <span className="block text-3xl font-light tracking-tight text-foreground lg:text-4xl">
                   {item.metric}
                 </span>
-                <span
-                  className="mt-2 block text-xs tracking-wide text-foreground"
-                  style={{ fontFamily: "var(--font-inter), sans-serif" }}
-                >
+                <span className="mt-2 block text-xs tracking-wide text-foreground font-sans">
                   {item.label}
                 </span>
-                <span
-                  className="mt-0.5 block text-[11px] text-muted-foreground"
-                  style={{ fontFamily: "var(--font-inter), sans-serif" }}
-                >
+                <span className="mt-0.5 block text-[11px] text-muted-foreground font-sans">
                   {item.sublabel}
                 </span>
               </div>
@@ -131,30 +122,21 @@ export function MarketInsights() {
               className="group cursor-pointer border border-border bg-card p-8 transition-all duration-500 hover:border-gold/20 hover:shadow-lg hover:shadow-gold/[0.03]"
             >
               <div className="mb-6 flex items-center justify-between">
-                <span
-                  className="border border-gold/20 bg-gold/5 px-3 py-1 text-[10px] tracking-[0.15em] text-gold uppercase"
-                  style={{ fontFamily: "var(--font-inter), sans-serif" }}
-                >
+                <span className="border border-gold/20 bg-gold/5 px-3 py-1 text-[10px] tracking-[0.15em] text-gold uppercase font-sans">
                   {report.category}
                 </span>
                 <ArrowUpRight className="h-4 w-4 text-muted-foreground/30 transition-all duration-300 group-hover:text-gold group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
               </div>
 
-              <h3 className="text-xl font-medium leading-snug tracking-tight text-foreground transition-colors duration-300 group-hover:text-gold">
+              <h3 className="text-xl font-medium leading-snug tracking-tight text-foreground transition-colors duration-300 group-hover:text-gold font-serif">
                 {report.title}
               </h3>
 
-              <p
-                className="mt-4 text-sm leading-relaxed text-muted-foreground line-clamp-3"
-                style={{ fontFamily: "var(--font-inter), sans-serif" }}
-              >
+              <p className="mt-4 text-sm leading-relaxed text-muted-foreground line-clamp-3 font-sans">
                 {report.summary}
               </p>
 
-              <div
-                className="mt-6 flex items-center gap-4 border-t border-border pt-5"
-                style={{ fontFamily: "var(--font-inter), sans-serif" }}
-              >
+              <div className="mt-6 flex items-center gap-4 border-t border-border pt-5 font-sans">
                 <div className="flex items-center gap-1.5">
                   <Calendar className="h-3 w-3 text-gold/40" />
                   <span className="text-[11px] text-muted-foreground">
@@ -171,10 +153,7 @@ export function MarketInsights() {
         </div>
 
         {/* Disclaimer */}
-        <p
-          className="mt-10 text-center text-[11px] text-muted-foreground/50"
-          style={{ fontFamily: "var(--font-inter), sans-serif" }}
-        >
+        <p className="mt-10 text-center text-[11px] text-muted-foreground/50 font-sans">
           Market data sourced from Miami Association of Realtors, Q4 2025. Past
           performance is not indicative of future results.
         </p>

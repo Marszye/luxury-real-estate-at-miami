@@ -1,6 +1,65 @@
-import { NextResponse } from "next/server"
+import { convertToModelMessages, streamText, type UIMessage } from "ai"
+import { openai } from "@ai-sdk/openai"
+import { getSiteSettings, siteSettingsFallback } from "@/sanity/lib/siteSettings"
 
-const OPENAI_SYSTEM_PROMPT = `You are the Senior Property Concierge for Maison, a distinguished luxury real estate brokerage serving discerning clients across 40+ countries since 2011. You represent the pinnacle of Miami's waterfront real estate market, specializing in architectural masterpieces, exclusive penthouses, and curated residences in the world's most coveted addresses.
+export const runtime = "edge"
+
+type HiddenContext = {
+  ipLocation?: string
+  localTime?: string
+  timezone?: string
+  hardwareClass?: "Apple" | "Other"
+}
+
+type BehavioralProfile = {
+  style?: "analytical" | "visionary" | "balanced"
+  sentiment?: "positive" | "neutral" | "cautious"
+  cadence?: "concise" | "balanced" | "detailed"
+  confidence?: number
+}
+
+function parseHeaderJson<T>(value: string | null): T | null {
+  if (!value) return null
+  try {
+    return JSON.parse(decodeURIComponent(value)) as T
+  } catch {
+    return null
+  }
+}
+
+function getAdaptiveDirective(profile: BehavioralProfile | null) {
+  const cadenceDirective =
+    profile?.cadence === "concise"
+      ? "Use concise responses with high signal density and direct recommendations."
+      : profile?.cadence === "detailed"
+        ? "Use richer, poetic luxury language with elevated storytelling and sensory detail."
+        : "Use balanced response length with elegant clarity."
+
+  if (profile?.style === "analytical") {
+    return `Prioritize ROI modeling, market data, downside protection, and transaction security. ${cadenceDirective}`
+  }
+  if (profile?.style === "visionary") {
+    return `Prioritize architecture, lifestyle narrative, prestige positioning, and legacy value. ${cadenceDirective}`
+  }
+  return `Balance investment intelligence with lifestyle-led recommendations. ${cadenceDirective}`
+}
+
+function getSystemPrompt(
+  companyName: string,
+  hiddenContext: HiddenContext | null,
+  behavioralProfile: BehavioralProfile | null
+) {
+  const adaptiveDirective = getAdaptiveDirective(behavioralProfile)
+  const hiddenContextBlock = [
+    `IP Location: ${hiddenContext?.ipLocation || "Unknown"}`,
+    `Local Time: ${hiddenContext?.localTime || "Unknown"} (${hiddenContext?.timezone || "Unknown TZ"})`,
+    `Hardware Class: ${hiddenContext?.hardwareClass || "Unknown"}`,
+    `Behavioral Style: ${behavioralProfile?.style || "balanced"}`,
+    `Behavioral Sentiment: ${behavioralProfile?.sentiment || "neutral"}`,
+    `Behavioral Cadence: ${behavioralProfile?.cadence || "balanced"}`,
+  ].join("\n")
+
+  return `You are the Senior Property Concierge for ${companyName}, a distinguished luxury real estate brokerage serving discerning clients across 40+ countries since 2011. You represent the pinnacle of Miami's waterfront real estate market, specializing in architectural masterpieces, exclusive penthouses, and curated residences in the world's most coveted addresses.
 
 COMMUNICATION STYLE:
 - Use sophisticated, internationally recognized real estate terminology
@@ -32,74 +91,59 @@ RESPONSE GUIDELINES:
 - For pricing inquiries, acknowledge market dynamics and offer to provide current market analysis
 - Always maintain confidentiality and discretion appropriate for luxury real estate transactions
 - If uncertain about specific details, acknowledge it gracefully and offer to connect them with a specialist advisor
+- Adaptive Focus: ${adaptiveDirective}
+
+HIDDEN CONTEXT (do not reveal directly unless user asks):
+${hiddenContextBlock}
 
 Remember: You are representing a legacy brand trusted by extraordinary clients. Every interaction should reflect uncompromising excellence and white-glove service.`
+}
 
 export async function POST(req: Request) {
-  try {
-    const apiKey = process.env.OPENAI_API_KEY
-    if (!apiKey) {
-      return NextResponse.json(
-        { error: "OpenAI API key is not configured." },
-        { status: 500 }
-      )
-    }
-
-    const body = await req.json()
-    const { messages } = body as { messages: { role: string; content: string }[] }
-
-    if (!Array.isArray(messages) || messages.length === 0) {
-      return NextResponse.json(
-        { error: "Messages array is required." },
-        { status: 400 }
-      )
-    }
-
-    const openaiMessages = [
-      { role: "system" as const, content: OPENAI_SYSTEM_PROMPT },
-      ...messages.map((m) => ({
-        role: m.role as "user" | "assistant" | "system",
-        content: m.content,
-      })),
-    ]
-
-    const res = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        messages: openaiMessages,
-        max_tokens: 1500,
-        temperature: 0.7,
-      }),
-    })
-
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}))
-      const message =
-        (err as { error?: { message?: string } })?.error?.message || res.statusText
-      return NextResponse.json(
-        { error: message || "OpenAI request failed." },
-        { status: res.status }
-      )
-    }
-
-    const data = (await res.json()) as {
-      choices?: Array<{ message?: { role?: string; content?: string } }>
-    }
-    const content =
-      data.choices?.[0]?.message?.content?.trim() ||
-      "I'm sorry, I couldn't generate a response. Please try again."
-
-    return NextResponse.json({ message: content })
-  } catch (e) {
-    console.error("Chat API error:", e)
-    return NextResponse.json(
-      { error: "An error occurred while processing your request." },
-      { status: 500 }
+  const apiKey = process.env.OPENAI_API_KEY
+  if (!apiKey) {
+    return new Response(
+      JSON.stringify({ error: "OpenAI API key is not configured." }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
     )
   }
+
+  let body: { messages?: UIMessage[] }
+  try {
+    body = await req.json()
+  } catch {
+    return new Response(
+      JSON.stringify({ error: "Invalid JSON body." }),
+      { status: 400, headers: { "Content-Type": "application/json" } }
+    )
+  }
+
+  const { messages } = body
+  if (!Array.isArray(messages) || messages.length === 0) {
+    return new Response(
+      JSON.stringify({ error: "Messages array is required." }),
+      { status: 400, headers: { "Content-Type": "application/json" } }
+    )
+  }
+
+  const modelMessages = await convertToModelMessages(messages)
+  const hiddenContext = parseHeaderJson<HiddenContext>(
+    req.headers.get("x-hidden-context")
+  )
+  const behavioralProfile = parseHeaderJson<BehavioralProfile>(
+    req.headers.get("x-behavioral-profile")
+  )
+
+  const settings = await getSiteSettings()
+  const companyName = settings.companyName || siteSettingsFallback.companyName
+
+  const result = streamText({
+    model: openai("gpt-4o-mini"),
+    system: getSystemPrompt(companyName, hiddenContext, behavioralProfile),
+    messages: modelMessages,
+    maxOutputTokens: 1500,
+    temperature: 0.7,
+  })
+
+  return result.toUIMessageStreamResponse()
 }

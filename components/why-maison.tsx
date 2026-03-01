@@ -1,5 +1,12 @@
+"use client"
+
 import Image from "next/image"
-import { Shield, Star, Clock, Users, Award, Globe, TrendingUp, Handshake, ArrowUpRight } from "lucide-react"
+import Link from "next/link"
+import { motion } from "framer-motion"
+import { Shield, Star, Clock, Globe, TrendingUp, Handshake, ArrowUpRight } from "lucide-react"
+import { ScrollReveal } from "@/components/scroll-reveal"
+
+const ease = [0.22, 1, 0.36, 1] as const
 
 const values = [
   {
@@ -14,7 +21,7 @@ const values = [
     icon: Star,
     title: "Curated Excellence",
     description:
-      "We personally vet every property to ensure it meets the extraordinary standards our clients deserve. Only 3% of submitted properties make it into the Maison portfolio.",
+      "We personally vet every property to ensure it meets the extraordinary standards our clients deserve. Only 3% of submitted properties make it into our portfolio.",
     stat: "3%",
     statLabel: "Acceptance rate",
   },
@@ -71,73 +78,64 @@ const services = [
   },
 ]
 
-export function WhyMaison() {
+export function WhyMaison({ companyName }: { companyName?: string }) {
+  const brandName = companyName || "Maison"
+
   return (
     <section id="about" className="border-t border-border bg-secondary">
       {/* Values Grid */}
       <div className="py-24 lg:py-32">
         <div className="mx-auto max-w-7xl px-6 lg:px-10">
-          {/* Header */}
-          <div className="mb-20 flex flex-col items-center text-center">
+          <ScrollReveal className="mb-20 flex flex-col items-center text-center">
             <div className="mb-6 inline-flex items-center gap-3">
               <span className="h-px w-8 bg-gold" />
-              <span
-                className="text-xs tracking-[0.4em] text-gold uppercase"
-                style={{ fontFamily: "var(--font-inter), sans-serif" }}
-              >
-                Why Maison
+              <span className="font-sans text-xs tracking-[0.4em] text-gold uppercase">
+                Why {brandName}
               </span>
               <span className="h-px w-8 bg-gold" />
             </div>
-            <h2 className="text-4xl font-light tracking-tight text-foreground sm:text-5xl lg:text-6xl text-balance">
+            <h2 className="font-serif text-4xl font-light tracking-tight text-foreground sm:text-5xl lg:text-6xl text-balance">
               A Legacy of{" "}
               <span className="italic text-gold">Distinction</span>
             </h2>
-            <p
-              className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-muted-foreground"
-              style={{ fontFamily: "var(--font-inter), sans-serif" }}
-            >
+            <p className="mx-auto mt-6 max-w-2xl font-sans text-base leading-relaxed text-muted-foreground">
               For over fifteen years, we have redefined the meaning of luxury
               real estate in South Florida. Our approach combines deep local
               expertise with global reach, data-driven insights with
               white-glove service, setting the standard others aspire to
               follow.
             </p>
-          </div>
+          </ScrollReveal>
 
-          {/* Values Grid */}
-          <div className="grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-3">
-            {values.map((item) => {
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {values.map((item, i) => {
               const Icon = item.icon
               return (
-                <div
-                  key={item.title}
-                  className="group bg-background p-8 transition-all duration-500 hover:bg-card lg:p-10"
-                >
-                  <div className="mb-6 flex h-12 w-12 items-center justify-center border border-gold/20 transition-all duration-500 group-hover:border-gold/50 group-hover:bg-gold/5">
-                    <Icon className="h-5 w-5 text-gold/60 transition-colors duration-500 group-hover:text-gold" />
-                  </div>
-                  <h3 className="text-lg font-medium tracking-tight text-foreground">
-                    {item.title}
-                  </h3>
-                  <p
-                    className="mt-3 text-sm leading-relaxed text-muted-foreground"
-                    style={{ fontFamily: "var(--font-inter), sans-serif" }}
+                <ScrollReveal key={item.title} delay={i * 0.08}>
+                  <motion.div
+                    whileHover={{ y: -4 }}
+                    transition={{ duration: 0.4, ease }}
+                    className="group h-full border border-border/50 bg-background p-8 transition-all duration-500 hover:border-gold/30 hover:shadow-lg hover:shadow-gold/[0.04] lg:p-10"
                   >
-                    {item.description}
-                  </p>
-                  <div className="mt-5 border-t border-border pt-4">
-                    <span className="text-xl font-light text-gold">
-                      {item.stat}
-                    </span>
-                    <span
-                      className="ml-2 text-[10px] tracking-[0.1em] text-muted-foreground uppercase"
-                      style={{ fontFamily: "var(--font-inter), sans-serif" }}
-                    >
-                      {item.statLabel}
-                    </span>
-                  </div>
-                </div>
+                    <div className="mb-6 flex h-12 w-12 items-center justify-center border border-gold/20 transition-all duration-500 group-hover:border-gold/50 group-hover:bg-gold/5">
+                      <Icon className="h-5 w-5 text-gold/60 transition-colors duration-500 group-hover:text-gold" />
+                    </div>
+                    <h3 className="font-serif text-lg font-medium tracking-tight text-foreground">
+                      {item.title}
+                    </h3>
+                    <p className="mt-3 font-geist text-sm leading-relaxed text-muted-foreground">
+                      {item.description.replaceAll("Maison", brandName)}
+                    </p>
+                    <div className="mt-5 border-t border-border/50 pt-4">
+                      <span className="font-serif text-xl font-light text-gold">
+                        {item.stat}
+                      </span>
+                      <span className="ml-2 font-geist text-[10px] tracking-[0.1em] text-muted-foreground uppercase">
+                        {item.statLabel}
+                      </span>
+                    </div>
+                  </motion.div>
+                </ScrollReveal>
               )
             })}
           </div>
@@ -148,85 +146,70 @@ export function WhyMaison() {
       <div className="border-t border-border py-24 lg:py-32">
         <div className="mx-auto max-w-7xl px-6 lg:px-10">
           <div className="grid gap-16 lg:grid-cols-[1fr_1.2fr]">
-            {/* Left */}
-            <div>
+            <ScrollReveal direction="left">
               <div className="mb-6 inline-flex items-center gap-3">
                 <span className="h-px w-8 bg-gold" />
-                <span
-                  className="text-xs tracking-[0.4em] text-gold uppercase"
-                  style={{ fontFamily: "var(--font-inter), sans-serif" }}
-                >
+                <span className="font-sans text-xs tracking-[0.4em] text-gold uppercase">
                   Our Services
                 </span>
               </div>
-              <h3 className="text-3xl font-light tracking-tight text-foreground sm:text-4xl">
+              <h3 className="font-serif text-3xl font-light tracking-tight text-foreground sm:text-4xl">
                 Comprehensive Real Estate{" "}
                 <span className="italic text-gold">Solutions</span>
               </h3>
-              <p
-                className="mt-6 max-w-md text-sm leading-relaxed text-muted-foreground"
-                style={{ fontFamily: "var(--font-inter), sans-serif" }}
-              >
+              <p className="mt-6 max-w-md font-sans text-sm leading-relaxed text-muted-foreground">
                 From initial consultation through closing and beyond, our
                 integrated service model ensures every aspect of your real
                 estate journey is managed with expertise and care. We serve
                 as your single point of contact for all property needs.
               </p>
 
-              {/* Image */}
               <div className="relative mt-10 aspect-[4/3] overflow-hidden">
                 <Image
                   src="/images/listing-5.jpg"
-                  alt="Luxury Miami interior showcasing Maison service quality"
+                  alt={`Luxury Miami interior showcasing ${brandName} service quality`}
                   fill
                   className="object-cover"
                   sizes="(max-width: 1024px) 100vw, 45vw"
                 />
               </div>
-            </div>
+            </ScrollReveal>
 
-            {/* Right — Service Cards */}
-            <div className="flex flex-col gap-px bg-border">
-              {services.map((svc, i) => (
-                <div
-                  key={svc.title}
-                  className="group flex items-start gap-6 bg-background p-8 transition-all duration-500 hover:bg-card"
-                >
-                  <span
-                    className="mt-1 text-xs text-gold/40"
-                    style={{ fontFamily: "var(--font-inter), sans-serif" }}
+            <ScrollReveal direction="right" delay={0.15}>
+              <div className="flex flex-col gap-px bg-border">
+                {services.map((svc, i) => (
+                  <div
+                    key={svc.title}
+                    className="group flex items-start gap-6 bg-background p-8 transition-all duration-500 hover:bg-card"
                   >
-                    0{i + 1}
-                  </span>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between">
-                      <h4 className="text-lg font-medium tracking-tight text-foreground transition-colors duration-300 group-hover:text-gold">
-                        {svc.title}
-                      </h4>
-                      <ArrowUpRight className="h-4 w-4 text-muted-foreground/20 transition-all duration-300 group-hover:text-gold group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                    <span className="mt-1 font-sans text-xs text-gold/40">
+                      0{i + 1}
+                    </span>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-serif text-lg font-medium tracking-tight text-foreground transition-colors duration-300 group-hover:text-gold">
+                          {svc.title}
+                        </h4>
+                        <ArrowUpRight className="h-4 w-4 text-muted-foreground/20 transition-all duration-300 group-hover:text-gold group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                      </div>
+                      <p className="mt-3 font-sans text-sm leading-relaxed text-muted-foreground">
+                        {svc.description}
+                      </p>
                     </div>
-                    <p
-                      className="mt-3 text-sm leading-relaxed text-muted-foreground"
-                      style={{ fontFamily: "var(--font-inter), sans-serif" }}
-                    >
-                      {svc.description}
-                    </p>
                   </div>
-                </div>
-              ))}
+                ))}
 
-              {/* CTA */}
-              <div className="bg-background p-8">
-                <a
-                  href="#schedule"
-                  className="inline-flex items-center gap-2 text-xs tracking-[0.15em] text-gold uppercase transition-all duration-300 hover:gap-3"
-                  style={{ fontFamily: "var(--font-inter), sans-serif" }}
-                >
-                  Discuss Your Needs
-                  <ArrowUpRight className="h-3.5 w-3.5" />
-                </a>
+                <div className="bg-background p-8">
+                  <Link
+                    href="/#schedule"
+                    className="inline-flex items-center gap-2 font-sans text-xs tracking-[0.15em] text-gold uppercase transition-all duration-300 hover:gap-3"
+                  >
+                    Discuss Your Needs
+                    <ArrowUpRight className="h-3.5 w-3.5" />
+                  </Link>
+                </div>
               </div>
-            </div>
+            </ScrollReveal>
           </div>
         </div>
       </div>
