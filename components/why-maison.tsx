@@ -5,6 +5,7 @@ import Link from "next/link"
 import { motion } from "framer-motion"
 import { Shield, Star, Clock, Globe, TrendingUp, Handshake, ArrowUpRight } from "lucide-react"
 import { ScrollReveal } from "@/components/scroll-reveal"
+import { IMAGE_BLUR_DATA_URL } from "@/lib/image-placeholders"
 
 const ease = [0.22, 1, 0.36, 1] as const
 
@@ -171,6 +172,8 @@ export function WhyMaison({ companyName }: { companyName?: string }) {
                   fill
                   className="object-cover"
                   sizes="(max-width: 1024px) 100vw, 45vw"
+                  placeholder="blur"
+                  blurDataURL={IMAGE_BLUR_DATA_URL}
                 />
               </div>
             </ScrollReveal>

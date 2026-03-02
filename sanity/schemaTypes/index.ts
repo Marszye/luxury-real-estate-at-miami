@@ -1,8 +1,10 @@
-import {type SchemaTypeDefinition} from 'sanity'
-import {property} from './property'
-import {advisor} from './advisor'
-import {siteSettings} from './siteSettings'
+import { type SchemaTypeDefinition } from "sanity"
+import { property } from "./property"
+import { advisor } from "./advisor"
+import { siteSettings } from "./siteSettings"
+import { lead } from "./lead"
+import { marketInsight } from "./marketInsight"
 
-export const schema: {types: SchemaTypeDefinition[]} = {
-  types: [property, advisor, siteSettings],
+export const schema: { types: SchemaTypeDefinition[] } = {
+  types: [property, advisor, siteSettings, lead, marketInsight],
 }

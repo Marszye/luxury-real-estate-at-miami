@@ -101,6 +101,14 @@ export const siteSettings = defineType({
       group: 'hero',
       options: { hotspot: true },
     }),
+    defineField({
+      name: 'marqueeNeighborhoods',
+      title: 'Marquee Neighborhoods',
+      type: 'array',
+      group: 'hero',
+      of: [{ type: 'string' }],
+      description: 'Neighborhood names shown in the scrolling marquee banner. Leave empty for defaults.',
+    }),
     // AI Persona
     defineField({
       name: 'aiName',

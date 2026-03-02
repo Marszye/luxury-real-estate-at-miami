@@ -1,8 +1,10 @@
 import Link from "next/link"
 import { TrendingUp, BarChart3, DollarSign, Building2, ArrowUpRight, Calendar } from "lucide-react"
 import { ScrollReveal } from "@/components/scroll-reveal"
+import type { MarketInsight } from "@/lib/queries"
+import { sanitizeForDisplay } from "@/lib/queries"
 
-const reports = [
+const staticReports = [
   {
     category: "Quarterly Report",
     title: "Miami Luxury Market Outlook Q1 2026",
@@ -10,6 +12,7 @@ const reports = [
       "Waterfront properties in Miami-Dade County saw a 12.3% year-over-year price increase, driven by continued international demand and limited inventory in prime neighborhoods.",
     date: "January 2026",
     readTime: "8 min read",
+    slug: "",
   },
   {
     category: "Investment Analysis",
@@ -18,6 +21,7 @@ const reports = [
       "Analysis of 24 upcoming developments across Brickell, Edgewater, and Miami Beach reveals projected ROI between 18-32% for early-stage buyers entering at current pre-launch pricing.",
     date: "December 2025",
     readTime: "12 min read",
+    slug: "",
   },
   {
     category: "Neighborhood Report",
@@ -26,8 +30,28 @@ const reports = [
       "Fisher Island remains America's wealthiest ZIP code with a median sale price of $6.9M. Our exclusive analysis covers inventory trends, buyer demographics, and price forecasts through 2027.",
     date: "November 2025",
     readTime: "10 min read",
+    slug: "",
   },
 ]
+
+const categoryLabels: Record<string, string> = {
+  "quarterly-report": "Quarterly Report",
+  "investment-analysis": "Investment Analysis",
+  "neighborhood-report": "Neighborhood Report",
+  "market-update": "Market Update",
+  "luxury-trends": "Luxury Trends",
+}
+
+function formatInsightDate(dateStr?: string): string {
+  if (!dateStr) return ""
+  try {
+    return new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric" }).format(
+      new Date(dateStr),
+    )
+  } catch {
+    return ""
+  }
+}
 
 const marketData = [
   {
@@ -56,7 +80,24 @@ const marketData = [
   },
 ]
 
-export function MarketInsights() {
+interface MarketInsightsProps {
+  sanityInsights?: MarketInsight[]
+}
+
+export function MarketInsights({ sanityInsights }: MarketInsightsProps = {}) {
+  const reports =
+    sanityInsights && sanityInsights.length > 0
+      ? sanityInsights.slice(0, 3).map((insight) => ({
+          category:
+            categoryLabels[insight.category || ""] || insight.category || "Report",
+          title: sanitizeForDisplay(insight.title),
+          summary: sanitizeForDisplay(insight.summary),
+          date: formatInsightDate(insight.publishedAt),
+          readTime: insight.readTime ? `${insight.readTime} min read` : "5 min read",
+          slug: insight.slug || "",
+        }))
+      : staticReports
+
   return (
     <section id="insights" className="border-t border-border bg-background py-24 lg:py-32">
       <div className="mx-auto max-w-7xl px-6 lg:px-10">
@@ -116,40 +157,47 @@ export function MarketInsights() {
 
         {/* Reports Grid */}
         <div className="grid gap-8 lg:grid-cols-3">
-          {reports.map((report) => (
-            <article
-              key={report.title}
-              className="group cursor-pointer border border-border bg-card p-8 transition-all duration-500 hover:border-gold/20 hover:shadow-lg hover:shadow-gold/[0.03]"
-            >
-              <div className="mb-6 flex items-center justify-between">
-                <span className="border border-gold/20 bg-gold/5 px-3 py-1 text-[10px] tracking-[0.15em] text-gold uppercase font-sans">
-                  {report.category}
-                </span>
-                <ArrowUpRight className="h-4 w-4 text-muted-foreground/30 transition-all duration-300 group-hover:text-gold group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-              </div>
+          {reports.map((report) => {
+            const Wrapper = report.slug
+              ? ({ children }: { children: React.ReactNode }) => (
+                  <Link href={`/blog/${report.slug}`}>{children}</Link>
+                )
+              : ({ children }: { children: React.ReactNode }) => <>{children}</>
 
-              <h3 className="text-xl font-medium leading-snug tracking-tight text-foreground transition-colors duration-300 group-hover:text-gold font-serif">
-                {report.title}
-              </h3>
+            return (
+              <Wrapper key={report.title}>
+                <article className="group cursor-pointer border border-border bg-card p-8 transition-all duration-500 hover:border-gold/20 hover:shadow-lg hover:shadow-gold/[0.03]">
+                  <div className="mb-6 flex items-center justify-between">
+                    <span className="border border-gold/20 bg-gold/5 px-3 py-1 text-[10px] tracking-[0.15em] text-gold uppercase font-sans">
+                      {report.category}
+                    </span>
+                    <ArrowUpRight className="h-4 w-4 text-muted-foreground/30 transition-all duration-300 group-hover:text-gold group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                  </div>
 
-              <p className="mt-4 text-sm leading-relaxed text-muted-foreground line-clamp-3 font-sans">
-                {report.summary}
-              </p>
+                  <h3 className="text-xl font-medium leading-snug tracking-tight text-foreground transition-colors duration-300 group-hover:text-gold font-serif">
+                    {report.title}
+                  </h3>
 
-              <div className="mt-6 flex items-center gap-4 border-t border-border pt-5 font-sans">
-                <div className="flex items-center gap-1.5">
-                  <Calendar className="h-3 w-3 text-gold/40" />
-                  <span className="text-[11px] text-muted-foreground">
-                    {report.date}
-                  </span>
-                </div>
-                <span className="h-0.5 w-0.5 rounded-full bg-muted-foreground/30" />
-                <span className="text-[11px] text-muted-foreground">
-                  {report.readTime}
-                </span>
-              </div>
-            </article>
-          ))}
+                  <p className="mt-4 text-sm leading-relaxed text-muted-foreground line-clamp-3 font-sans">
+                    {report.summary}
+                  </p>
+
+                  <div className="mt-6 flex items-center gap-4 border-t border-border pt-5 font-sans">
+                    <div className="flex items-center gap-1.5">
+                      <Calendar className="h-3 w-3 text-gold/40" />
+                      <span className="text-[11px] text-muted-foreground">
+                        {report.date}
+                      </span>
+                    </div>
+                    <span className="h-0.5 w-0.5 rounded-full bg-muted-foreground/30" />
+                    <span className="text-[11px] text-muted-foreground">
+                      {report.readTime}
+                    </span>
+                  </div>
+                </article>
+              </Wrapper>
+            )
+          })}
         </div>
 
         {/* Disclaimer */}

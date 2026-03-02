@@ -18,7 +18,7 @@ import {
 } from "lucide-react"
 import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
-import { AIConcierge } from "@/components/ai-concierge"
+import { AIConciergeLazy as AIConcierge } from "@/components/ai-concierge-lazy"
 import { CinemaText, CinemaBlock } from "@/components/cinema-text"
 import { LiveSync } from "@/components/live-sync"
 import { ScrollReveal } from "@/components/scroll-reveal"

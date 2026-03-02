@@ -10,7 +10,7 @@ import {
   computeIntentScore,
 } from "@/lib/lead-constants"
 import { getSupabaseServerClient } from "@/lib/supabase"
-import { client } from "@/sanity/lib/client"
+import { sanityClient, sanityWriteClient } from "@/lib/sanity.client"
 import { hasSanityEnv } from "@/sanity/env"
 import { decryptLeadField, encryptLeadField, verifySignedNonce } from "@/lib/security"
 
@@ -253,7 +253,7 @@ async function buildExecutiveLeadInsight(params: {
 async function getEmailBranding(): Promise<EmailBranding> {
   if (!hasSanityEnv) return { companyName: "Maison" }
   try {
-    const data = await client
+    const data = await sanityClient
       .withConfig({ useCdn: false })
       .fetch<EmailBrandingRaw>(emailBrandingQuery, {}, { cache: "no-store" as RequestCache })
     const cacheBust = data?.updatedAt ? `?v=${encodeURIComponent(data.updatedAt)}` : ""
@@ -486,6 +486,49 @@ export async function POST(request: Request) {
     } else {
       databaseSaveFailed = true
       databaseWarning = "Supabase server client missing. Check SUPABASE_SERVICE_ROLE_KEY and SUPABASE_URL."
+    }
+
+    // Write lead to Sanity Lead Vault (in addition to Supabase/email)
+    if (hasSanityEnv && process.env.SANITY_API_TOKEN) {
+      try {
+        const encryptionKey = process.env.LEAD_ENCRYPTION_KEY
+        const userPersona =
+          behavioralProfile?.style === "analytical"
+            ? "analytical"
+            : behavioralProfile?.style === "visionary"
+              ? "aesthetic"
+              : "balanced"
+        await sanityWriteClient.create({
+          _type: "lead",
+          fullName: name,
+          email: encryptedEmail ?? email,
+          phone: phone ? (encryptLeadField(phone, encryptionKey) ?? phone) : undefined,
+          propertyInterest: effectivePropertyInterest ?? undefined,
+          budgetRange: budgetRange ?? undefined,
+          message: message
+            ? `${message}\n\nExecutive Insight: ${executiveLeadInsight.intent} | ${executiveLeadInsight.budgetType} | ${executiveLeadInsight.urgency}`
+            : undefined,
+          aiConversationSummary: dedupedChatHistory.length > 0
+            ? dedupedChatHistory.map((m) => `${m.role}: ${m.text}`).join("\n\n")
+            : undefined,
+          aiImageAnalysis: imageAnalysisSummary ?? undefined,
+          userPersona,
+          psychologicalProfile: behavioralProfile
+            ? (encryptLeadField(JSON.stringify(behavioralProfile), encryptionKey) ?? undefined)
+            : undefined,
+          deviceTier: deviceTier ?? undefined,
+          deviceInfo: deviceInfoLabel ?? undefined,
+          ipLocation: clientIntelligence?.ipLocation ?? undefined,
+          sessionDuration: sessionDurationSeconds ?? undefined,
+          referrerUrl: payload.referrer_url ?? undefined,
+          intentScore: globalScore ?? undefined,
+          leadClassification: classification ?? undefined,
+          leadImageUrl: leadImageUrl ?? undefined,
+          capturedAt: new Date().toISOString(),
+        })
+      } catch {
+        // Sanity write is non-blocking; lead still sent via email/supabase
+      }
     }
 
     const branding = await getEmailBranding()

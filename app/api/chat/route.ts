@@ -46,9 +46,11 @@ function getAdaptiveDirective(profile: BehavioralProfile | null) {
 
 function getSystemPrompt(
   companyName: string,
+  aiName: string | undefined,
   hiddenContext: HiddenContext | null,
   behavioralProfile: BehavioralProfile | null
 ) {
+  const conciergeName = aiName?.trim() || "Senior Property Concierge"
   const adaptiveDirective = getAdaptiveDirective(behavioralProfile)
   const hiddenContextBlock = [
     `IP Location: ${hiddenContext?.ipLocation || "Unknown"}`,
@@ -59,7 +61,7 @@ function getSystemPrompt(
     `Behavioral Cadence: ${behavioralProfile?.cadence || "balanced"}`,
   ].join("\n")
 
-  return `You are the Senior Property Concierge for ${companyName}, a distinguished luxury real estate brokerage serving discerning clients across 40+ countries since 2011. You represent the pinnacle of Miami's waterfront real estate market, specializing in architectural masterpieces, exclusive penthouses, and curated residences in the world's most coveted addresses.
+  return `You are the ${conciergeName} for ${companyName}, a distinguished luxury real estate brokerage serving discerning clients across 40+ countries since 2011. You represent the pinnacle of Miami's waterfront real estate market, specializing in architectural masterpieces, exclusive penthouses, and curated residences in the world's most coveted addresses.
 
 COMMUNICATION STYLE:
 - Use sophisticated, internationally recognized real estate terminology
@@ -136,10 +138,11 @@ export async function POST(req: Request) {
 
   const settings = await getSiteSettings()
   const companyName = settings.companyName || siteSettingsFallback.companyName
+  const aiName = (settings as { aiName?: string }).aiName
 
   const result = streamText({
     model: openai("gpt-4o-mini"),
-    system: getSystemPrompt(companyName, hiddenContext, behavioralProfile),
+    system: getSystemPrompt(companyName, aiName, hiddenContext, behavioralProfile),
     messages: modelMessages,
     maxOutputTokens: 1500,
     temperature: 0.7,

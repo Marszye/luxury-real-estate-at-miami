@@ -12,16 +12,8 @@ import { useLeadContext } from "@/src/context/lead-context"
 import { useClientIntelligence } from "@/src/hooks/use-client-intelligence"
 import type { BehavioralProfile } from "@/src/context/lead-context"
 
-const WELCOME_TEXT =
+const DEFAULT_WELCOME_TEXT =
   "Good day. I'm your Senior Property Concierge. We've been curating exceptional Miami residences for discerning clients since 2011. Whether you're seeking a waterfront estate, a penthouse with panoramic vistas, or an investment-grade property, I'm here to guide you through our exclusive portfolio.\n\nHow may I assist you today?"
-
-const initialMessages: UIMessage[] = [
-  {
-    id: "welcome",
-    role: "assistant",
-    parts: [{ type: "text" as const, text: WELCOME_TEXT }],
-  },
-]
 
 const THINKING_STATES = [
   "Analyzing your architectural preferences...",
@@ -162,7 +154,7 @@ function analyzeBehavioralProfile(input: string): BehavioralProfile {
 }
 
 export function AIConcierge() {
-  const { companyName } = useSiteSettings()
+  const { companyName, aiName, aiWelcomeMessage, aiAvatarUrl } = useSiteSettings()
   const leadCtx = useLeadContext()
   const intelligence = useClientIntelligence()
 
@@ -175,6 +167,20 @@ export function AIConcierge() {
 
   const messagesContainerRef = useRef<HTMLDivElement>(null)
   const uploadInputRef = useRef<HTMLInputElement>(null)
+
+  const welcomeText = (aiWelcomeMessage || DEFAULT_WELCOME_TEXT).trim()
+  const displayName = (aiName || "Property Concierge").trim()
+
+  const initialMessages: UIMessage[] = useMemo(
+    () => [
+      {
+        id: "welcome",
+        role: "assistant",
+        parts: [{ type: "text" as const, text: welcomeText }],
+      },
+    ],
+    [welcomeText]
+  )
 
   const transport = useMemo(
     () =>
@@ -221,18 +227,28 @@ export function AIConcierge() {
     }
   }, [messages, isOpen, isMinimized, showThinking, isVisionAnalyzing])
 
-  const loadSendAuth = useCallback(async () => {
-    try {
-      const res = await fetch("/api/send-token", { cache: "no-store" })
-      if (!res.ok) return null
-      const data = await res.json()
-      if (!data?.nonce || !data?.signature) return null
-      const token = { nonce: String(data.nonce), signature: String(data.signature) }
-      setSendAuth(token)
-      return token
-    } catch {
-      return null
+  const loadSendAuth = useCallback(async (retries = 2) => {
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      try {
+        const res = await fetch("/api/send-token", { cache: "no-store" })
+        if (!res.ok) {
+          if (attempt < retries) continue
+          return null
+        }
+        const data = await res.json()
+        if (!data?.nonce || !data?.signature) {
+          if (attempt < retries) continue
+          return null
+        }
+        const token = { nonce: String(data.nonce), signature: String(data.signature) }
+        setSendAuth(token)
+        return token
+      } catch {
+        if (attempt < retries) continue
+        return null
+      }
     }
+    return null
   }, [])
 
   useEffect(() => {
@@ -306,7 +322,7 @@ export function AIConcierge() {
         reader.readAsDataURL(file)
       })
 
-      const token = sendAuth ?? (await loadSendAuth())
+      const token = (await loadSendAuth()) ?? sendAuth
       if (!token) {
         throw new Error("Secure analysis token unavailable. Please refresh and try again.")
       }
@@ -416,13 +432,21 @@ export function AIConcierge() {
             {/* Header */}
             <div className="flex items-center justify-between border-b border-gold/10 bg-charcoal px-5 py-4">
               <div className="flex items-center gap-3">
-                <div className="relative flex h-9 w-9 items-center justify-center border border-gold/30 bg-charcoal-light">
-                  <Bot className="h-4 w-4 text-gold" />
+                <div className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden border border-gold/30 bg-charcoal-light">
+                  {aiAvatarUrl ? (
+                    <img
+                      src={aiAvatarUrl}
+                      alt={displayName}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <Bot className="h-4 w-4 text-gold" />
+                  )}
                   <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-charcoal bg-emerald-400" />
                 </div>
                 <div>
                   <p className="font-serif text-sm font-medium tracking-wide text-cream">
-                    Property Concierge
+                    {displayName}
                   </p>
                   <p className="flex items-center gap-1.5 font-sans text-[10px] tracking-wider text-cream/50 uppercase">
                     <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />

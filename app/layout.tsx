@@ -5,7 +5,6 @@ import './globals.css'
 import { getSiteSettings, siteSettingsFallback } from '@/sanity/lib/siteSettings'
 import { SiteSettingsProvider } from '@/components/site-settings-provider'
 import { LeadProvider } from '@/src/context/lead-context'
-import { PageTransition } from '@/components/page-transition'
 import { HashScrollHandler } from '@/components/hash-scroll-handler'
 
 const playfair = Playfair_Display({
@@ -95,7 +94,7 @@ export default async function RootLayout({
         <SiteSettingsProvider settings={settings}>
           <LeadProvider>
             <HashScrollHandler />
-            <PageTransition>{children}</PageTransition>
+            {children}
           </LeadProvider>
         </SiteSettingsProvider>
         <Toaster

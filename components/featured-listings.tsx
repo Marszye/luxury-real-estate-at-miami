@@ -6,8 +6,11 @@ import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
 import { Bath, BedDouble, Maximize, MapPin, ArrowUpRight, Loader2 } from "lucide-react"
 import { ScrollReveal, StaggerContainer, staggerChild } from "@/components/scroll-reveal"
+import { IMAGE_BLUR_DATA_URL } from "@/lib/image-placeholders"
+import type { Property, SanityImageRef } from "@/lib/queries"
+import { buildSanityImageUrl } from "@/sanity/lib/image"
 
-export const listings = [
+const staticListings = [
   {
     id: 1,
     slug: "oceanfront-penthouse-fisher-island",
@@ -100,13 +103,85 @@ export const listings = [
   },
 ]
 
+function formatPrice(price?: number): string {
+  if (!price) return "Price on Request"
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  }).format(price)
+}
+
+function formatSqFt(sqft?: number): string {
+  if (!sqft) return "N/A"
+  return sqft.toLocaleString("en-US")
+}
+
+function getSanityImageUrl(image?: SanityImageRef): string | null {
+  if (!image?.asset) return null
+  if (image.asset.url) return image.asset.url
+  return buildSanityImageUrl(image, { width: 1200, quality: 85 })
+}
+
+function getStatusTag(status?: string): string {
+  const map: Record<string, string> = {
+    active: "Active",
+    "under-contract": "Under Contract",
+    sold: "Sold",
+    "pre-launch": "Pre-Launch",
+    "coming-soon": "Coming Soon",
+  }
+  return map[status || ""] || "Featured"
+}
+
+interface NormalizedListing {
+  id: string
+  slug: string
+  title: string
+  address: string
+  neighborhood: string
+  price: string
+  priceNum: number
+  beds: number
+  baths: number
+  sqft: string
+  style: string
+  image: string
+  tag: string
+  blurData?: string
+}
+
+function normalizeSanityProperty(p: Property): NormalizedListing {
+  const imageUrl = getSanityImageUrl(p.mainImage)
+  return {
+    id: p._id,
+    slug: p.slug,
+    title: p.title,
+    address: p.location || "Miami, FL",
+    neighborhood: p.location?.split(",")[0]?.trim() || "Miami",
+    price: formatPrice(p.price),
+    priceNum: p.price || 0,
+    beds: p.bedrooms || 0,
+    baths: p.bathrooms || 0,
+    sqft: formatSqFt(p.sqFt),
+    style: p.propertyType || "Luxury",
+    image: imageUrl || "/images/listing-1.jpg",
+    tag: getStatusTag(p.status),
+    blurData: p.mainImage?.asset?.metadata?.lqip,
+  }
+}
+
+export { staticListings as listings }
+
 interface FeaturedListingsProps {
+  sanityProperties?: Property[]
   filterLocation?: string
   filterPrice?: string
   filterStyle?: string
 }
 
 export function FeaturedListings({
+  sanityProperties,
   filterLocation,
   filterPrice,
   filterStyle,
@@ -118,33 +193,55 @@ export function FeaturedListings({
     style: filterStyle || "",
   })
 
+  const allListings: NormalizedListing[] = useMemo(() => {
+    if (sanityProperties && sanityProperties.length > 0) {
+      return sanityProperties.map(normalizeSanityProperty)
+    }
+    return staticListings.map((l) => ({
+      ...l,
+      id: String(l.id),
+    }))
+  }, [sanityProperties])
+
+  const neighborhoods = useMemo(() => {
+    const set = new Set(allListings.map((l) => l.neighborhood))
+    return Array.from(set).slice(0, 6)
+  }, [allListings])
+
   const filteredListings = useMemo(() => {
-    let results = [...listings]
+    let results = [...allListings]
     if (activeFilters.location) {
-      results = results.filter((l) =>
-        l.neighborhood.toLowerCase().includes(activeFilters.location.toLowerCase()) ||
-        l.address.toLowerCase().includes(activeFilters.location.toLowerCase())
+      results = results.filter(
+        (l) =>
+          l.neighborhood
+            .toLowerCase()
+            .includes(activeFilters.location.toLowerCase()) ||
+          l.address
+            .toLowerCase()
+            .includes(activeFilters.location.toLowerCase()),
       )
     }
     if (activeFilters.price) {
       const priceMap: Record<string, [number, number]> = {
-        "under-10m": [0, 10000000],
-        "10m-20m": [10000000, 20000000],
-        "20m-50m": [20000000, 50000000],
-        "50m+": [50000000, Infinity],
+        "under-10m": [0, 10_000_000],
+        "10m-20m": [10_000_000, 20_000_000],
+        "20m-50m": [20_000_000, 50_000_000],
+        "50m+": [50_000_000, Infinity],
       }
       const range = priceMap[activeFilters.price]
       if (range) {
-        results = results.filter((l) => l.priceNum >= range[0] && l.priceNum < range[1])
+        results = results.filter(
+          (l) => l.priceNum >= range[0] && l.priceNum < range[1],
+        )
       }
     }
     if (activeFilters.style) {
-      results = results.filter((l) =>
-        l.style.toLowerCase() === activeFilters.style.toLowerCase()
+      results = results.filter(
+        (l) => l.style.toLowerCase() === activeFilters.style.toLowerCase(),
       )
     }
     return results
-  }, [activeFilters])
+  }, [activeFilters, allListings])
 
   const handleFilter = useCallback((key: string, value: string) => {
     setIsFiltering(true)
@@ -157,7 +254,8 @@ export function FeaturedListings({
     }, 600)
   }, [])
 
-  const hasActiveFilter = activeFilters.location || activeFilters.price || activeFilters.style
+  const hasActiveFilter =
+    activeFilters.location || activeFilters.price || activeFilters.style
 
   return (
     <section id="properties" className="bg-background py-24 lg:py-32">
@@ -184,7 +282,7 @@ export function FeaturedListings({
           <span className="font-sans text-[11px] tracking-[0.15em] text-muted-foreground uppercase">
             Filter:
           </span>
-          {["Fisher Island", "Brickell", "Star Island", "Coconut Grove"].map((loc) => (
+          {neighborhoods.map((loc) => (
             <button
               key={loc}
               onClick={() => handleFilter("location", loc)}
@@ -273,6 +371,8 @@ export function FeaturedListings({
                       fill
                       className="object-cover transition-all duration-700 ease-out group-hover:scale-105"
                       sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      placeholder="blur"
+                      blurDataURL={listing.blurData || IMAGE_BLUR_DATA_URL}
                     />
                     <div className="absolute inset-0 bg-charcoal/0 transition-all duration-500 group-hover:bg-charcoal/40" />
                     <div className="absolute top-4 left-4">

@@ -1,17 +1,22 @@
 import { cache } from "react"
 import { groq } from "next-sanity"
-import { client } from "./client"
-import { hasSanityEnv } from "../env"
+import { hasSanityEnv, sanityFetchWithISR } from "@/lib/sanity.client"
 
 export type SiteSettings = {
   companyName: string
   primaryColor?: string
   accentColor?: string
   heroTitle?: string
+  heroSubtitle?: string
+  heroBgImageUrl?: string
   logoUrl?: string
   faviconUrl?: string
   seoTitle?: string
   seoDescription?: string
+  aiName?: string
+  aiWelcomeMessage?: string
+  aiAvatarUrl?: string
+  marqueeNeighborhoods?: string[]
 }
 
 export const siteSettingsFallback: Required<Pick<
@@ -19,7 +24,6 @@ export const siteSettingsFallback: Required<Pick<
   "companyName" | "primaryColor" | "accentColor" | "heroTitle"
 >> = {
   companyName: "Maison",
-  // Defaults are aligned with the existing design language.
   primaryColor: "#1f1f1f",
   accentColor: "#c9a96e",
   heroTitle: "Luxury Real Estate Miami",
@@ -30,10 +34,16 @@ const siteSettingsQuery = groq`*[_type == "siteSettings"][0]{
   primaryColor,
   accentColor,
   heroTitle,
+  heroSubtitle,
+  "heroBgImageUrl": heroBgImage.asset->url,
   "logoUrl": logo.asset->url,
   "faviconUrl": favicon.asset->url,
   seoTitle,
-  seoDescription
+  seoDescription,
+  aiName,
+  aiWelcomeMessage,
+  "aiAvatarUrl": aiAvatar.asset->url,
+  marqueeNeighborhoods
 }`
 
 export const getSiteSettings = cache(async (): Promise<SiteSettings> => {
@@ -42,10 +52,10 @@ export const getSiteSettings = cache(async (): Promise<SiteSettings> => {
   }
 
   try {
-    const data = await client.fetch<SiteSettings>(
+    const data = await sanityFetchWithISR<SiteSettings | null>(
       siteSettingsQuery,
       {},
-      { next: { revalidate: 60 } }
+      60,
     )
 
     return {

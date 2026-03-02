@@ -1,6 +1,8 @@
 "use client"
 
-const neighborhoods = [
+import { useSiteSettings } from "@/components/site-settings-provider"
+
+const DEFAULT_NEIGHBORHOODS = [
   "Fisher Island",
   "Star Island",
   "Miami Beach",
@@ -14,6 +16,12 @@ const neighborhoods = [
 ]
 
 export function MarqueeBanner() {
+  const { marqueeNeighborhoods } = useSiteSettings()
+  const neighborhoods =
+    marqueeNeighborhoods && marqueeNeighborhoods.length > 0
+      ? marqueeNeighborhoods.filter(Boolean)
+      : DEFAULT_NEIGHBORHOODS
+
   return (
     <div className="border-y border-border bg-background overflow-hidden py-5">
       <div className="flex animate-[marquee_30s_linear_infinite] whitespace-nowrap">

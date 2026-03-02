@@ -15,6 +15,7 @@ import { toast } from "sonner"
 import { ScrollReveal } from "@/components/scroll-reveal"
 import { leadFormSchema, type LeadFormValues } from "@/lib/lead-schema"
 import { computeIntentScore } from "@/lib/lead-constants"
+import { IMAGE_BLUR_DATA_URL } from "@/lib/image-placeholders"
 
 const AREA_OPTIONS = [
   "Fisher Island",
@@ -128,18 +129,28 @@ export function ScheduleTour() {
   const messageValue = watch("message") ?? ""
   const intentScore = useMemo(() => computeIntentScore(messageValue), [messageValue])
 
-  const loadSendAuth = async () => {
-    try {
-      const res = await fetch("/api/send-token", { cache: "no-store" })
-      if (!res.ok) return null
-      const data = await res.json()
-      if (!data?.nonce || !data?.signature) return null
-      const token = { nonce: String(data.nonce), signature: String(data.signature) }
-      setSendAuth(token)
-      return token
-    } catch {
-      return null
+  const loadSendAuth = async (retries = 2): Promise<{ nonce: string; signature: string } | null> => {
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      try {
+        const res = await fetch("/api/send-token", { cache: "no-store" })
+        if (!res.ok) {
+          if (attempt < retries) continue
+          return null
+        }
+        const data = await res.json()
+        if (!data?.nonce || !data?.signature) {
+          if (attempt < retries) continue
+          return null
+        }
+        const token = { nonce: String(data.nonce), signature: String(data.signature) }
+        setSendAuth(token)
+        return token
+      } catch {
+        if (attempt < retries) continue
+        return null
+      }
     }
+    return null
   }
 
   useEffect(() => {
@@ -183,9 +194,12 @@ export function ScheduleTour() {
     }, 100)
 
     try {
-      const token = sendAuth ?? (await loadSendAuth())
+      let token = await loadSendAuth()
+      if (!token) token = sendAuth
       if (!token) {
-        throw new Error("Submission token unavailable. Please refresh and try again.")
+        throw new Error(
+          "Could not get a secure token. Please refresh the page and try again. If the problem persists, check that API_SIGNATURE_SECRET is set in your environment."
+        )
       }
 
       const res = await fetch("/api/send", {
@@ -267,6 +281,8 @@ export function ScheduleTour() {
           fill
           className="object-cover"
           sizes="100vw"
+          placeholder="blur"
+          blurDataURL={IMAGE_BLUR_DATA_URL}
         />
       </div>
 

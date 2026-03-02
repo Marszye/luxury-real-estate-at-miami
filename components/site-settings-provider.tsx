@@ -11,7 +11,19 @@ type SiteSettingsContextValue = {
       "companyName" | "primaryColor" | "accentColor" | "heroTitle"
     >
   > &
-    Pick<SiteSettings, "logoUrl" | "faviconUrl" | "seoTitle" | "seoDescription">
+    Pick<
+      SiteSettings,
+      | "logoUrl"
+      | "faviconUrl"
+      | "seoTitle"
+      | "seoDescription"
+      | "heroSubtitle"
+      | "heroBgImageUrl"
+      | "aiName"
+      | "aiWelcomeMessage"
+      | "aiAvatarUrl"
+      | "marqueeNeighborhoods"
+    >
 }
 
 const SiteSettingsContext = createContext<SiteSettingsContextValue | null>(null)
@@ -39,6 +51,12 @@ export function SiteSettingsProvider({
         faviconUrl: merged.faviconUrl,
         seoTitle: merged.seoTitle,
         seoDescription: merged.seoDescription,
+        heroSubtitle: merged.heroSubtitle,
+        heroBgImageUrl: merged.heroBgImageUrl,
+        aiName: merged.aiName,
+        aiWelcomeMessage: merged.aiWelcomeMessage,
+        aiAvatarUrl: merged.aiAvatarUrl,
+        marqueeNeighborhoods: merged.marqueeNeighborhoods,
       },
     }
   }, [settings])
@@ -59,6 +77,12 @@ export function useSiteSettings(): SiteSettingsContextValue["settings"] {
     faviconUrl: undefined,
     seoTitle: undefined,
     seoDescription: undefined,
+    heroSubtitle: undefined,
+    heroBgImageUrl: undefined,
+    aiName: undefined,
+    aiWelcomeMessage: undefined,
+    aiAvatarUrl: undefined,
+    marqueeNeighborhoods: undefined,
   }
 }
 

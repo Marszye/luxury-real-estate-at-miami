@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation"
 import { Metadata } from "next"
 import { getPropertyBySlug } from "@/lib/queries"
+import type { Property } from "@/lib/queries"
 import { createRealEstateListingJsonLd } from "@/lib/seo"
 import { urlFor } from "@/sanity/lib/image"
 import { getSiteSettings, siteSettingsFallback } from "@/sanity/lib/siteSettings"
@@ -31,6 +32,36 @@ function getStaticListing(slug: string): StaticListing | null {
   }
 }
 
+function buildSanityListing(property: Property, imageUrl?: string): StaticListing {
+  return {
+    slug: property.slug,
+    title: property.title,
+    address: property.location || "Miami, FL",
+    neighborhood: property.location || "Miami",
+    price: property.price
+      ? new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: "USD",
+          maximumFractionDigits: 0,
+        }).format(property.price)
+      : "Price on Request",
+    beds: property.bedrooms || 0,
+    baths: property.bathrooms || 0,
+    sqft: property.sqFt ? property.sqFt.toLocaleString() : "N/A",
+    style: property.propertyType || "Luxury",
+    image: imageUrl || "/images/listing-1.jpg",
+    tag: property.status === "pre-launch"
+      ? "Pre-Launch"
+      : property.status === "under-contract"
+        ? "Under Contract"
+        : "Exclusive",
+    luxuryDescription: property.luxuryDescription,
+    roiData: property.roiData,
+    materialSpecs: property.materialSpecs,
+    architecturalDNA: property.architecturalDNA,
+  }
+}
+
 export async function generateMetadata(props: Props): Promise<Metadata> {
   const params = await props.params
   const staticListing = getStaticListing(params.slug)
@@ -53,9 +84,10 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 
   return {
     title: `${property.title} | ${companyName}`,
-    description: property.location
-      ? `Explore ${property.title} in ${property.location}.`
-      : property.title,
+    description: property.luxuryDescription
+      || (property.location
+        ? `Explore ${property.title} in ${property.location}.`
+        : property.title),
     alternates: { canonical: url },
   }
 }
@@ -78,19 +110,7 @@ export default async function PropertyPage(props: Props) {
       : undefined
   const jsonLd = createRealEstateListingJsonLd(property, { url, imageUrl })
 
-  const sanityListing: StaticListing = {
-    slug: property.slug,
-    title: property.title,
-    address: property.location || "Miami, FL",
-    neighborhood: property.location || "Miami",
-    price: property.price ? `$${(property.price / 1000000).toFixed(1)}M` : "Price on Request",
-    beds: property.bedrooms || 0,
-    baths: property.bathrooms || 0,
-    sqft: property.sqFt ? property.sqFt.toLocaleString() : "N/A",
-    style: "Luxury",
-    image: imageUrl || "/images/listing-1.jpg",
-    tag: "Exclusive",
-  }
+  const sanityListing = buildSanityListing(property, imageUrl)
 
   return (
     <>

@@ -1,9 +1,11 @@
 "use client"
 
 import Image from "next/image"
+import Link from "next/link"
 import { Linkedin, Mail, ArrowUpRight } from "lucide-react"
 import { ScrollReveal, StaggerContainer, staggerChild } from "@/components/scroll-reveal"
 import { motion } from "framer-motion"
+import { IMAGE_BLUR_DATA_URL } from "@/lib/image-placeholders"
 
 const team = [
   {
@@ -70,13 +72,13 @@ export function TeamSection({ companyName }: { companyName?: string }) {
                 personally assigned to ensure an unmatched level of service.
               </p>
             </div>
-            <a
+            <Link
               href="/#about"
               className="mt-8 inline-flex items-center gap-2 border border-charcoal/20 px-8 py-3 font-sans text-xs tracking-[0.2em] text-charcoal uppercase transition-all duration-500 hover:border-gold hover:bg-gold hover:text-cream lg:mt-0"
             >
               Full Team
               <ArrowUpRight className="h-3.5 w-3.5" />
-            </a>
+            </Link>
           </div>
         </ScrollReveal>
 
@@ -98,6 +100,8 @@ export function TeamSection({ companyName }: { companyName?: string }) {
                   fill
                   className="object-cover transition-all duration-700 group-hover:scale-105"
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                  placeholder="blur"
+                  blurDataURL={IMAGE_BLUR_DATA_URL}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-charcoal/50 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
 

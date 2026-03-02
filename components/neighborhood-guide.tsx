@@ -6,6 +6,7 @@ import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
 import { ArrowUpRight, MapPin } from "lucide-react"
 import { ScrollReveal } from "@/components/scroll-reveal"
+import { IMAGE_BLUR_DATA_URL } from "@/lib/image-placeholders"
 
 const neighborhoods = [
   {
@@ -87,8 +88,6 @@ const neighborhoods = [
     mapY: 42,
   },
 ]
-
-const ease = [0.22, 1, 0.36, 1] as const
 
 export function NeighborhoodGuide() {
   const [activeIdx, setActiveIdx] = useState(0)
@@ -241,6 +240,8 @@ export function NeighborhoodGuide() {
                 fill
                 className="object-cover transition-all duration-700"
                 sizes="(max-width: 1024px) 100vw, 60vw"
+                placeholder="blur"
+                blurDataURL={IMAGE_BLUR_DATA_URL}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-charcoal/60 via-transparent to-transparent" />
               <div className="absolute bottom-6 left-6 right-6">

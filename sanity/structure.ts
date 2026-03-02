@@ -1,30 +1,46 @@
-import type { StructureResolver } from 'sanity/structure'
-import { CogIcon } from '@sanity/icons'
-import { propertyIcon } from './schemaTypes/property'
+import type { StructureResolver } from "sanity/structure"
+import { CogIcon } from "@sanity/icons"
+import { propertyIcon } from "./schemaTypes/property"
+import { leadIcon } from "./schemaTypes/lead"
+import { marketInsightIcon } from "./schemaTypes/marketInsight"
 
-// https://www.sanity.io/docs/structure-builder-cheat-sheet
 export const structure: StructureResolver = (S) =>
   S.list()
-    .title('Content')
+    .title("Content")
     .items([
-      // Singleton: Site Settings (single instance)
       S.listItem()
-        .title('Site Settings')
+        .title("Site Settings")
         .icon(CogIcon)
         .child(
           S.document()
-            .schemaType('siteSettings')
-            .documentId('siteSettings')
-            .title('Site Settings')
+            .schemaType("siteSettings")
+            .documentId("siteSettings")
+            .title("Site Settings"),
         ),
       S.divider(),
       S.listItem()
-        .title('Properties')
+        .title("Properties")
         .icon(propertyIcon)
-        .child(S.documentTypeList('property').title('Properties')),
+        .child(S.documentTypeList("property").title("Properties")),
+      S.listItem()
+        .title("Market Insights")
+        .icon(marketInsightIcon)
+        .child(S.documentTypeList("marketInsight").title("Market Insights")),
       S.divider(),
-      // Other document types (exclude property and siteSettings to avoid duplicates)
+      S.listItem()
+        .title("Lead Vault")
+        .icon(leadIcon)
+        .child(
+          S.documentTypeList("lead")
+            .title("Leads")
+            .defaultOrdering([{ field: "capturedAt", direction: "desc" }]),
+        ),
+      S.divider(),
       ...S.documentTypeListItems().filter(
-        (item) => item.getId() !== 'property' && item.getId() !== 'siteSettings'
+        (item) =>
+          item.getId() !== "property" &&
+          item.getId() !== "siteSettings" &&
+          item.getId() !== "lead" &&
+          item.getId() !== "marketInsight",
       ),
     ])

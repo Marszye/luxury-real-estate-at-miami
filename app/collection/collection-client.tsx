@@ -18,7 +18,7 @@ import {
 } from "lucide-react"
 import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
-import { AIConcierge } from "@/components/ai-concierge"
+import { AIConciergeLazy as AIConcierge } from "@/components/ai-concierge-lazy"
 import { CinemaText, CinemaBlock } from "@/components/cinema-text"
 import { LiveSync } from "@/components/live-sync"
 import { ScrollReveal } from "@/components/scroll-reveal"
@@ -225,11 +225,16 @@ you how to be still."`,
   },
 ]
 
-export function CollectionClient() {
-  const [expanded, setExpanded] = useState<string | null>(
-    bespokeListings[0].id
-  )
-  const { isEliteApple, contentVariant } = useEliteFilter()
+export type CollectionListing = (typeof bespokeListings)[number]
+
+interface CollectionClientProps {
+  sanityCollection?: CollectionListing[]
+}
+
+export function CollectionClient({ sanityCollection }: CollectionClientProps = {}) {
+  const listings = sanityCollection && sanityCollection.length > 0 ? sanityCollection : bespokeListings
+  const [expanded, setExpanded] = useState<string | null>(listings[0]?.id ?? null)
+  const { isEliteApple } = useEliteFilter()
 
   return (
     <main>
@@ -281,7 +286,7 @@ export function CollectionClient() {
       </section>
 
       {/* Bespoke Listings */}
-      {bespokeListings.map((listing, idx) => {
+      {listings.map((listing, idx) => {
         const isOpen = expanded === listing.id
 
         return (
@@ -579,7 +584,7 @@ export function CollectionClient() {
                     <ArrowUpRight className="h-3.5 w-3.5" />
                   </Link>
                   <Link
-                    href="/"
+                    href={("slug" in listing && listing.slug) ? `/properties/${listing.slug}` : `/properties/${listing.id}`}
                     className={`inline-flex items-center gap-2 border px-8 py-4 font-sans text-xs tracking-[0.2em] uppercase transition-all duration-500 ${
                       idx % 2 === 0
                         ? "border-charcoal/20 text-charcoal hover:border-gold hover:text-gold"

@@ -2,10 +2,10 @@
 
 import { useState } from "react"
 import Image from "next/image"
-import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
 import { ArrowDown, Search, ChevronDown, Loader2 } from "lucide-react"
 import { useSiteSettings } from "@/components/site-settings-provider"
+import { IMAGE_BLUR_DATA_URL } from "@/lib/image-placeholders"
 
 const ease = [0.22, 1, 0.36, 1]
 
@@ -28,8 +28,11 @@ const priceOpts = [
   { label: "$20M+", value: "20m-50m" },
 ]
 
+const DEFAULT_HERO_SUBTITLE =
+  "Curated waterfront residences and architectural masterpieces in Miami's most coveted addresses. Trusted by discerning buyers across 40+ countries since 2011."
+
 export function HeroSection() {
-  const { heroTitle } = useSiteSettings()
+  const { heroTitle, heroSubtitle, heroBgImageUrl } = useSiteSettings()
   const [searching, setSearching] = useState(false)
   const [locOpen, setLocOpen] = useState(false)
   const [typeOpen, setTypeOpen] = useState(false)
@@ -54,7 +57,17 @@ export function HeroSection() {
     <>
       <section className="relative flex min-h-[100svh] flex-col overflow-hidden">
         <div className="absolute inset-0">
-          <Image src="/images/hero-miami.jpg" alt="Luxury Miami waterfront" fill className="object-cover" priority sizes="100vw" />
+          <Image
+            src={heroBgImageUrl || "/images/hero-miami.jpg"}
+            alt="Luxury Miami waterfront"
+            fill
+            className="object-cover"
+            priority
+            fetchPriority="high"
+            sizes="100vw"
+            placeholder="blur"
+            blurDataURL={IMAGE_BLUR_DATA_URL}
+          />
           <div className="absolute inset-0 bg-charcoal/50" />
           <div className="absolute inset-0 bg-gradient-to-b from-charcoal/40 via-transparent to-charcoal/70" />
         </div>
@@ -74,7 +87,7 @@ export function HeroSection() {
           </motion.h1>
 
           <motion.p initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.7, ease }} className="mx-auto max-w-2xl text-center font-sans text-base leading-relaxed text-cream/70 sm:text-lg">
-            Curated waterfront residences and architectural masterpieces in Miami&apos;s most coveted addresses. Trusted by discerning buyers across 40+ countries since 2011.
+            {(heroSubtitle || DEFAULT_HERO_SUBTITLE).trim()}
           </motion.p>
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.9, ease }} className="mt-12 w-full max-w-3xl">

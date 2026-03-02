@@ -1,0 +1,34 @@
+# CURSOR RULES: LUXURY REAL ESTATE SAAS (ELITE EDITION)
+
+## 1. CORE ARCHITECTURE & STACK
+- Frontend: Next.js 14+ (App Router), Framer Motion, Tailwind CSS.
+- Backend: Next.js API Routes, Supabase (Service Role), Resend.
+- Database: Supabase 'leads' table with Psychological & Intelligence columns.
+- AI: OpenAI Vision (Multimodal) & Vercel AI SDK (Streaming).
+
+## 2. DATABASE & SECURITY (THE FORT KNOX LOGIC)
+- TABLE: Always refer to the 'leads' table schema in @supabase_schema.sql.
+- ENCRYPTION: 
+  - Mandatory: Encrypt 'email', 'phone', and 'message' using 'LEAD_ENCRYPTION_KEY' before `supabase.insert()`.
+  - Decryption: Only decrypt data when sending the notification email via Resend.
+- AUTH: Always use 'SUPABASE_SERVICE_ROLE_KEY' for server-side operations to bypass RLS.
+- SIGNATURE: Implement 'API_SIGNATURE_SECRET' verification for all POST requests to `/api/send`.
+
+## 3. ELITE SCORING & INTELLIGENCE
+- DEVICE TIERING:
+  - If device is Apple (iPhone/Mac), set `device_tier` to 'High-end Apple' (+15 points).
+  - Otherwise, set to 'Standard'.
+- BUDGET PENALTY:
+  - If budget is < $500k, apply -30 points penalty and cap `final_score` at 40.
+- WHALE QUALIFICATION:
+  - Label as 'Whale 💎' ONLY if Score > 90, Budget >= $2M, and Device is 'High-end Apple'.
+
+## 4. VISUAL & UX (THE CINEMA EXPERIENCE)
+- ANIMATION: Use word-by-word streaming with `framer-motion` (fade-in & slide-up 5px).
+- THINKING STATE: Show a sophisticated 'Thinking' overlay with pulsing animations during AI processing.
+- ADAPTIVE PERSONA: The AI Concierge must adjust its tone based on `psychological_profile` (Analytical vs. Aesthetic) and `local_time`.
+
+## 5. CODE STYLE & QUALITY
+- Clean Code: Use functional components, TypeScript (strict), and modular utilities.
+- Error Handling: Always include try/catch blocks and return professional error messages.
+- Optimistic UI: Ensure 0.1s success feedback for all form submissions
