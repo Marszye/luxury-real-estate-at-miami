@@ -14,6 +14,9 @@ import { type NextRequest, NextResponse } from "next/server"
 const REVALIDATION_SECRET = process.env.REVALIDATION_SECRET
 const REVALIDATE_TAG = "sanity"
 
+// Ensure this route is never statically optimized at build time
+export const dynamic = "force-dynamic"
+
 export async function POST(request: NextRequest) {
   if (!REVALIDATION_SECRET) {
     console.error("[revalidate] REVALIDATION_SECRET not configured")
@@ -34,7 +37,8 @@ export async function POST(request: NextRequest) {
     const _type = body?._type as string | undefined
     const slug = body?.slug?.current as string | undefined
 
-    revalidateTag(REVALIDATE_TAG)
+    // Next.js 16+ requires second arg: { expire: 0 } for webhooks (immediate expiration)
+    revalidateTag(REVALIDATE_TAG, { expire: 0 })
 
     // Path-specific revalidation for instant updates
     revalidatePath("/")
