@@ -76,9 +76,9 @@ Configure these in **Vercel → Project → Settings → Environment Variables**
 ## 5. Studio Access
 
 - **URL:** `https://your-domain.vercel.app/studio`
-- **Developer Login** and **Admin** in nav both link to `/studio`.
+- **Developer Login** in top-right nav links to `/studio`.
 - Studio is protected by Sanity’s built-in authentication.
-- Theme: Obsidian/Gold branding in `sanity.config.ts`.
+- Theme: Obsidian & Gold branding with Playfair Display typography in `sanity.config.ts`.
 
 ---
 

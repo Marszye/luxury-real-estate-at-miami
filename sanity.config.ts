@@ -14,17 +14,18 @@ import {schema} from './sanity/schemaTypes'
 import {structure} from './sanity/structure'
 
 const obsidianGoldTheme = buildLegacyTheme({
-  '--black': '#0f0f0f',
-  '--white': '#fafaf9',
-  '--brand-primary': '#c9a96e',
-  '--main-navigation-color': '#0f0f0f',
-  '--main-navigation-color--inverted': '#fafaf9',
-  '--focus-color': '#c9a96e',
-  '--component-bg': '#1a1a1a',
-  '--component-text-color': '#fafaf9',
-  '--default-button-color': '#c9a96e',
-  '--default-button-primary-color': '#c9a96e',
-  '--state-info-color': '#c9a96e',
+  "--black": "#0f0f0f",
+  "--white": "#fafaf9",
+  "--brand-primary": "#c9a96e",
+  "--main-navigation-color": "#0f0f0f",
+  "--main-navigation-color--inverted": "#fafaf9",
+  "--focus-color": "#c9a96e",
+  "--component-bg": "#1a1a1a",
+  "--component-text-color": "#fafaf9",
+  "--default-button-color": "#c9a96e",
+  "--default-button-primary-color": "#c9a96e",
+  "--state-info-color": "#c9a96e",
+  "--font-family-base": "'Playfair Display', Georgia, serif",
 })
 
 export default defineConfig({

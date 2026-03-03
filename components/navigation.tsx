@@ -123,13 +123,6 @@ export function Navigation() {
               >
                 Developer Login
               </Link>
-              <span className="h-3 w-px bg-cream/15" />
-              <Link
-                href="/studio"
-                className="text-[11px] tracking-wide text-cream/50 transition-colors hover:text-gold"
-              >
-                Admin
-              </Link>
             </div>
           </div>
         </div>

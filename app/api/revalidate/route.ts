@@ -34,8 +34,7 @@ export async function POST(request: NextRequest) {
     const _type = body?._type as string | undefined
     const slug = body?.slug?.current as string | undefined
 
-    // Revalidate by tag (covers all Sanity content)
-    revalidateTag(REVALIDATE_TAG, "max")
+    revalidateTag(REVALIDATE_TAG)
 
     // Path-specific revalidation for instant updates
     revalidatePath("/")

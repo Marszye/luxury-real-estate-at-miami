@@ -1,8 +1,14 @@
 /**
  * Production Sanity client configuration for marszye Luxury Real Estate SaaS.
- * - useCdn: true for blazing-fast global delivery (production)
- * - useCdn: false for real-time data (API routes, draft preview via /api/draft)
- * - SANITY_API_TOKEN: server-only, never exposed to browser
+ *
+ * useCdn: false for Studio route and API routes (real-time editing, draft preview)
+ * useCdn: true for public property pages (0.1s loading, blazing-fast global delivery)
+ *
+ * Env vars (required in production):
+ *   NEXT_PUBLIC_SANITY_PROJECT_ID
+ *   NEXT_PUBLIC_SANITY_DATASET
+ *   NEXT_PUBLIC_SANITY_API_VERSION
+ *   SANITY_API_TOKEN (server-only, never exposed to browser)
  */
 
 import { createClient, type QueryParams } from "next-sanity"
@@ -13,7 +19,7 @@ const apiVersion = process.env.NEXT_PUBLIC_SANITY_API_VERSION || "2024-03-01"
 
 export const hasSanityEnv = Boolean(projectId && dataset)
 
-/** Server client: useCdn: false — for real-time data (API routes, draft preview) */
+/** Server client: useCdn false for real-time data (Studio, API routes, draft preview) */
 export const sanityClient = createClient({
   projectId: projectId || "missing-project-id",
   dataset,
@@ -22,7 +28,7 @@ export const sanityClient = createClient({
   perspective: "published",
 })
 
-/** CDN client: useCdn: true — for blazing-fast global delivery (production) */
+/** CDN client: useCdn true for public property pages (0.1s loading speed) */
 export const sanityCdnClient = createClient({
   projectId: projectId || "missing-project-id",
   dataset,
@@ -31,7 +37,7 @@ export const sanityCdnClient = createClient({
   perspective: "published",
 })
 
-/** Write client: token required — server-only, never in client bundles */
+/** Write client: token required, server-only, never in client bundles */
 export const sanityWriteClient = createClient({
   projectId: projectId || "missing-project-id",
   dataset,
@@ -43,9 +49,9 @@ export const sanityWriteClient = createClient({
 export const sanityClientConfigured = hasSanityEnv
 
 /**
- * ISR fetch: uses CDN for blazing-fast global delivery.
- * Revalidation period (default 60s) for Incremental Static Regeneration.
- * For draft preview, use /api/draft then sanityClient directly.
+ * ISR fetch for public pages: uses CDN for blazing-fast global delivery.
+ * Used by property pages, collection, market-intelligence, blog.
+ * Revalidation via webhook at /api/revalidate when Sanity content changes.
  */
 export async function sanityFetchWithISR<T>(
   query: string,
